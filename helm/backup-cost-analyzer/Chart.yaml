@@ -1,0 +1,14 @@
+apiVersion: v2
+name: backup-cost-analyzer
+description: Enterprise platform for Backup Cost Intelligence
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: postgresql
+    version: 12.1.0
+    repository: https://charts.bitnami.com/bitnami
+  - name: redis
+    version: 17.3.14
+    repository: https://charts.bitnami.com/bitnami

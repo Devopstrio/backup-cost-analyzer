@@ -1,0 +1,68 @@
+{
+    "dashboard": {
+        "id": null,
+        "uid": "bca-enterprise-overview",
+        "title": "BCA: Enterprise Backup Governance",
+        "tags": [
+            "finops",
+            "backup",
+            "bca"
+        ],
+        "timezone": "browser",
+        "schemaVersion": 36,
+        "version": 1,
+        "panels": [
+            {
+                "type": "graph",
+                "title": "Backup Spend by Environment (24h)",
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 0
+                },
+                "targets": [
+                    {
+                        "expr": "sum(bca_spend_usd) by (environment)",
+                        "legendFormat": "{{environment}}"
+                    }
+                ]
+            },
+            {
+                "type": "stat",
+                "title": "Total Orphaned Disk Waste",
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 12,
+                    "y": 0
+                },
+                "targets": [
+                    {
+                        "expr": "sum(bca_waste_usd{type='orphaned'})"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "unit": "currencyUSD",
+                        "color": {
+                            "mode": "thresholds"
+                        },
+                        "thresholds": {
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": null
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 1000
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

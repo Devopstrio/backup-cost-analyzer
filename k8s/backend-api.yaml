@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bca-api
+  namespace: bca-system
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bca-api
+  template:
+    metadata:
+      labels:
+        app: bca-api
+    spec:
+      containers:
+      - name: api
+        image: devopstrio/bca-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bca-secrets
+              key: database-url
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1024Mi"
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bca-api-svc
+  namespace: bca-system
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    app: bca-api

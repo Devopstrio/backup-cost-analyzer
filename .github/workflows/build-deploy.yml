@@ -1,0 +1,71 @@
+name: "🚀 BCA Enterprise CI/CD"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: "🛡️ Security & Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: "Set up Python"
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          
+      - name: "Linting & Type Check"
+        run: |
+          pip install flake8 mypy
+          flake8 .
+          
+      - name: "Run Unit Tests"
+        run: |
+          pip install pytest
+          pytest tests/
+          
+      - name: "Terraform Security Scan"
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: terraform/
+          framework: terraform
+
+  build:
+    name: "📦 Containerize & Ship"
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: "Login to Registry"
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+          
+      - name: "Build & Push Backend API"
+        run: |
+          docker build -t devopstrio/bca-api:${{ github.sha }} ./backend
+          docker push devopstrio/bca-api:${{ github.sha }}
+
+  deploy_stage:
+    name: "🚀 Deploy to Staging (AKS)"
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: "Set AKS Context"
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: 'rg-bca-mgmt'
+          cluster-name: 'aks-bca-staging'
+          
+      - name: "Helm Deploy"
+        run: |
+          helm upgrade --install bca ./helm/backup-cost-analyzer \
+            --set image.tag=${{ github.sha }} \
+            --values ./helm/values-staging.yaml

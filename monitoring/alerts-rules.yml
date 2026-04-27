@@ -1,0 +1,38 @@
+# 📈 Backup Cost Analyzer: Metrics & Alerts
+
+## Prometheus Alert Rules (BCA-Alerts.yml)
+
+```yaml
+groups:
+- name: BCA-Operational-Alerts
+  rules:
+  - alert: HighBackupSpendWaste
+    expr: bca_waste_usd > 10000
+    for: 24h
+    labels:
+      severity: critical
+    annotations:
+      summary: "High levels of backup waste detected ($10k+)"
+      description: "Immediate action required to audit orphaned snapshots in East US region."
+
+  - alert: ForecastVarianceHigh
+    expr: abs(bca_forecast_accuracy) < 0.8
+    for: 48h
+    labels:
+      severity: warning
+    annotations:
+      summary: "Forecast model divergence detected"
+
+  - alert: ConnectorSyncFailure
+    expr: bca_connector_success_count == 0
+    for: 1h
+    labels:
+      severity: critical
+    annotations:
+      summary: "Cloud Connector sync failed"
+```
+
+## Grafana Highlights
+- **Spend Velocity**: Real-time USD consumed per hour across all clouds.
+- **Storage Tier Distribution**: Percentage of data in Hot vs. Archive.
+- **ROI Dashboard**: Spend vs. Recovery Success metrics.
